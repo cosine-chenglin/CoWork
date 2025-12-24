@@ -1,0 +1,559 @@
+tools:
+  # ==================== 文件操作工具 ====================
+  
+  file_read:
+    level: 0
+    type: tool_call_agent
+    name: "file_read"
+    description: "读取指定文件的内容。可以读取单个或多个文件。可以读取整个文件或指定起始和结束行。默认返回带行号的 JSON 格式。警告：不要读取二进制文件（如 pdf,docx、图片等）。"
+    parameters:
+      type: "object"
+      properties:
+        path:
+          type: "array"
+          items:
+            type: "string"
+          description: "文件路径数组。单个文件传 ['file.txt']，多个文件传 ['file1.txt', 'file2.txt']。只允许读取文本文件，不要读取二进制文件。"
+        start_line:
+          type: "integer"
+          description: "读取起始行号（从1开始），可选。多文件模式下应用于所有文件。"
+        end_line:
+          type: "integer"
+          description: "读取结束行号（包含），可选。多文件模式下应用于所有文件。"
+        encoding:
+          type: "string"
+          description: "文件编码，可选。不指定时自动检测。"
+        show_line_numbers:
+          type: "boolean"
+          default: true
+          description: "是否显示行号。true 返回 JSON 格式（含行号），false 返回纯文本。默认 true。"
+      required: ["path"]
+
+  file_write:
+    level: 0
+    type: tool_call_agent
+    name: "file_write"
+    description: "向指定文件写入内容。如果文件不存在会自动创建；如果存在可以选择覆盖或追加。也支持替换指定行。"
+    parameters:
+      type: "object"
+      properties:
+        path:
+          type: "string"
+          description: "文件的相对路径，例如 'src/main.py'。写入前建议使用目录列表工具检查是否有同名文件，避免覆盖他人文件。"
+        content:
+          type: "string"
+          description: "要写入的文本内容。"
+        mode:
+          type: "string"
+          enum: ["write", "append"]
+          default: "write"
+          description: "写入模式。'write' 覆盖整个文件，'append' 追加到文件末尾。"
+        start_line:
+          type: "integer"
+          description: "行替换模式 - 起始行号（从1开始），可选。"
+        end_line:
+          type: "integer"
+          description: "行替换模式 - 结束行号，可选。"
+      required: ["path", "content"]
+  
+  dir_list:
+    level: 0
+    type: tool_call_agent
+    name: "dir_list"
+    description: "列出指定目录的内容。可以递归列出所有子目录和文件（自动排除 code_env 目录）。"
+    parameters:
+      type: "object"
+      properties:
+        path:
+          type: "string"
+          default: "."
+          description: "要列出的目录路径。不指定时列出任务根目录。"
+        recursive:
+          type: "boolean"
+          default: false
+          description: "是否递归列出子目录，默认 false。"
+      required: []
+
+  dir_create:
+    level: 0
+    type: tool_call_agent
+    name: "dir_create"
+    description: "创建新目录。如果父目录不存在会自动创建。"
+    parameters:
+      type: "object"
+      properties:
+        path:
+          type: "string"
+          description: "要创建的目录路径。"
+      required: ["path"]
+
+  file_move:
+    level: 0
+    type: tool_call_agent
+    name: "file_move"
+    description: "移动或复制文件/目录。可以选择是移动还是复制（保留原文件）。"
+    parameters:
+      type: "object"
+      properties:
+        source:
+          # type: "string"
+          # description: "源文件或目录的相对路径。"
+          # path:
+          type: "array"
+          items:
+            type: "string"
+          description: "源文件或目录的相对路径组，可以单个或多个"
+        destination:
+          type: "string"
+          description: "目标路径。"
+        copy:
+          type: "boolean"
+          default: false
+          description: "是否复制（保留原文件），默认 false（移动）。"
+      required: ["source", "destination"]
+
+  file_delete:
+    level: 0
+    type: tool_call_agent
+    name: "file_delete"
+    description: "删除指定的文件或目录。"
+    parameters:
+      type: "object"
+      properties:
+        path:
+          type: "string"
+          description: "要删除的文件或目录的相对路径。"
+      required: ["path"]
+
+  # ==================== 网络工具 ====================
+
+  web_search:
+    level: 0
+    type: tool_call_agent
+    name: "web_search"
+    description: "使用 DuckDuckGo 进行网络搜索。结果会保存为 Markdown 格式。"
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "搜索关键词或问题。"
+        max_results:
+          type: "integer"
+          default: 10
+          description: "返回的最大结果数，默认 10。"
+        save_path:
+          type: "string"
+          description: "保存搜索结果的相对路径（.md 文件），请保存在 temp/web_search目录中。"
+      required: ["query","save_path"]
+
+  google_scholar_search:
+    level: 0
+    type: tool_call_agent
+    name: "google_scholar_search"
+    description: "在 Google Scholar 上搜索学术论文。支持年份筛选和分页。搜索结果保存为 Markdown 文件。"
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "搜索关键词或主题。"
+        year_low:
+          type: "integer"
+          description: "筛选论文的起始年份，可选。"
+        year_high:
+          type: "integer"
+          description: "筛选论文的结束年份，可选。"
+        pages:
+          type: "integer"
+          default: 1
+          description: "爬取的搜索结果页数，每页约10篇论文。"
+        save_path:
+          type: "string"
+          description: "保存搜索结果的相对路径（.md 文件)。请保存在 temp/scholar_search目录中。"
+      required: ["query","save_path"]
+
+  arxiv_search:
+    level: 0
+    type: tool_call_agent
+    name: "arxiv_search"
+    description: "搜索 arXiv 预印本论文库。返回论文标题、作者、摘要、PDF 下载地址等信息。"
+    parameters:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "搜索关键词，例如 'transformer neural network'。"
+        max_results:
+          type: "integer"
+          default: 10
+          description: "返回的最大结果数，默认 10。"
+        sort_by:
+          type: "string"
+          enum: ["relevance", "lastUpdatedDate", "submittedDate"]
+          default: "relevance"
+          description: "排序方式：relevance（相关性）、lastUpdatedDate（更新时间）、submittedDate（提交时间）。"
+        sort_order:
+          type: "string"
+          enum: ["descending", "ascending"]
+          default: "descending"
+          description: "排序顺序：descending（降序）、ascending（升序）。"
+        save_path:
+          type: "string"
+          description: "保存搜索结果的相对路径（.md 文件）。请保存在 temp/arxiv_search目录中。"
+      required: ["query","save_path"]
+
+  crawl_page:
+    level: 0
+    type: tool_call_agent
+    name: "crawl_page"
+    description: "爬取指定 URL 的网页内容，转换为 Markdown 格式。使用 crawl4ai 智能提取。"
+    parameters:
+      type: "object"
+      properties:
+        url:
+          type: "string"
+          description: "要爬取的网页完整 URL。"
+        save_path:
+          type: "string"
+          description: "保存 Markdown 文件的相对路径，必选。不指定则直接返回内容。请保存在 temp/crawl_page目录中。"
+        download_images:
+          type: "boolean"
+          default: false
+          description: "是否下载图片，默认 false（移除图片）。"
+      required: ["url","save_path"]
+
+  file_download:
+    level: 0
+    type: tool_call_agent
+    name: "file_download"
+    description: "从 URL 下载文件到本地。"
+    parameters:
+      type: "object"
+      properties:
+        url:
+          type: "string"
+          description: "要下载的文件 URL。"
+        save_path:
+          type: "string"
+          description: "保存文件的相对路径，例如 'upload/file.pdf'。"
+      required: ["url", "save_path"]
+
+  # ==================== 文档处理工具 ====================
+
+  parse_document:
+    level: 0
+    type: tool_call_agent
+    name: "parse_document"
+    description: "解析二进制文档为纯文本文件，不提供总结，分析服务。支持 PDF、Word、Markdown 格式。"
+    parameters:
+      type: "object"
+      properties:
+        path:
+          type: "string"
+          description: "要解析的文档相对路径。"
+        save_path:
+          type: "string"
+          description: "保存解析结果的相对路径。请保存在 temp/parse_document目录中。"
+      required: ["path","save_path"]
+
+  vision_tool:
+    level: 0
+    type: tool_call_agent
+    name: "vision_tool"
+    description: "使用LLM Vision模型分析图片内容。可以识别图片中的内容、描述场景、回答问题等。"
+    parameters:
+      type: "object"
+      properties:
+        image_path:
+          type: "string"
+          description: "图片文件的相对路径（相对于任务目录）。"
+        question:
+          type: "string"
+          description: "要问的问题，例如'这是什么？'或'请描述图片中的内容'。不指定则默认描述图片内容。"
+        # model:
+        #   type: "string"
+        #   description: "要使用的模型名称，可选。不指定则使用配置中的默认模型。"
+      required: ["image_path"]
+
+  create_image:
+    level: 0
+    type: tool_call_agent
+    name: "create_image"
+    description: "根据提示词生成图片，并保存到指定路径。"
+    parameters:
+      type: "object"
+      properties:
+        prompt:
+          type: "string"
+          description: "图片的描述提示词。"
+        image_path:
+          type: "string"
+          description: "生成图片保存的相对路径（例如 'upload/generated_image.png'）。"
+      required: ["prompt", "image_path"]
+
+  audio_tool:
+    level: 0
+    type: tool_call_agent
+    name: "audio_tool"
+    description: "使用LLM Audio模型分析音频内容。可以识别音频中的内容、描述场景、回答问题等。支持 mp3、wav、m4a 等格式。"
+    parameters:
+      type: "object"
+      properties:
+        audio_path:
+          type: "string"
+          description: "音频文件的相对路径（相对于任务目录）。"
+        question:
+          type: "string"
+          description: "要问的问题，例如'这段音频讲了什么？'或'请描述音频内容'。不指定则默认描述音频内容。"
+        model:
+          type: "string"
+          description: "要使用的模型名称，可选。不指定则使用配置中的默认模型。"
+      required: ["audio_path"]
+
+  paper_analyze_tool:
+    level: 0
+    type: tool_call_agent
+    name: "paper_analyze_tool"
+    description: "解析论文文档并使用LLM分析论文内容。可以总结论文、回答关于论文的问题等。"
+    parameters:
+      type: "object"
+      properties:
+        paper_path:
+          type: "string"
+          description: "论文文件的相对路径（相对于任务目录），支持PDF、Word等格式。"
+        question:
+          type: "string"
+          description: "要问的问题，例如'这篇论文的主要贡献是什么？'不指定则默认总结论文内容。"
+        parse_save_path:
+          type: "string"
+          description: "保存解析结果的相对路径，可选。"
+      required: ["paper_path"]
+
+  md_to_pdf:
+    level: 0
+    type: tool_call_agent
+    name: "md_to_pdf"
+    description: "将 Markdown 文件转换为 PDF。支持数学公式、表格、中文。调用远程 Pandoc API 服务。"
+    parameters:
+      type: "object"
+      properties:
+        source_path:
+          type: "string"
+          description: "Markdown 源文件的相对路径。"
+        output_path:
+          type: "string"
+          description: "输出 PDF 文件的相对路径，可选。不指定则使用源文件名改后缀。"
+        engine:
+          type: "string"
+          enum: ["pdflatex", "xelatex", "lualatex"]
+          default: "xelatex"
+          description: "PDF 编译引擎。xelatex 支持中文（推荐），pdflatex 适合英文。"
+      required: ["source_path"]
+
+  md_to_docx:
+    level: 0
+    type: tool_call_agent
+    name: "md_to_docx"
+    description: "将 Markdown 文件转换为 Word 文档（.docx）。调用远程 Pandoc API 服务。"
+    parameters:
+      type: "object"
+      properties:
+        source_path:
+          type: "string"
+          description: "Markdown 源文件的相对路径。"
+        output_path:
+          type: "string"
+          description: "输出 DOCX 文件的相对路径，可选。不指定则使用源文件名改后缀。"
+      required: ["source_path"]
+
+  file_download:
+    level: 0
+    type: tool_call_agent
+    name: "file_download"
+    description: "从指定 URL 下载文件到本地。"
+    parameters:
+      type: "object"
+      properties:
+        url:
+          type: "string"
+          description: "要下载的文件 URL。"
+        save_path:
+          type: "string"
+          description: "保存文件的相对路径，例如 'upload/file.pdf'。"
+      required: ["url", "save_path"]
+
+  # ==================== 文档处理工具 ====================
+
+  # parse_document:
+  #   level: 0
+  #   type: tool_call_agent
+  #   name: "parse_document"
+  #   description: "解析文档文件并提取文本内容。支持 PDF、Word、Markdown 格式。使用 pdfplumber 高质量提取 PDF（包含表格）。"
+  #   parameters:
+  #     type: "object"
+  #     properties:
+  #       path:
+  #         type: "string"
+  #         description: "要解析的文档相对路径。"
+  #       save_path:
+  #         type: "string"
+  #         description: "保存解析结果的相对路径，可选。不指定则直接返回内容。"
+  #     required: ["path"]
+
+  md_to_pdf:
+    level: 0
+    type: tool_call_agent
+    name: "md_to_pdf"
+    description: "将 Markdown 文件转换为 PDF。支持数学公式、表格、中文。调用远程 Pandoc API 服务。"
+    parameters:
+      type: "object"
+      properties:
+        source_path:
+          type: "string"
+          description: "Markdown 源文件的相对路径。"
+        output_path:
+          type: "string"
+          description: "输出 PDF 文件的相对路径，可选。不指定则使用源文件名改后缀。"
+        engine:
+          type: "string"
+          enum: ["pdflatex", "xelatex", "lualatex"]
+          default: "xelatex"
+          description: "PDF 编译引擎。xelatex 支持中文（推荐），pdflatex 适合英文。"
+      required: ["source_path"]
+
+  md_to_docx:
+    level: 0
+    type: tool_call_agent
+    name: "md_to_docx"
+    description: "将 Markdown 文件转换为 Word 文档（.docx）。调用远程 Pandoc API 服务。"
+    parameters:
+      type: "object"
+      properties:
+        source_path:
+          type: "string"
+          description: "Markdown 源文件的相对路径。"
+        output_path:
+          type: "string"
+          description: "输出 DOCX 文件的相对路径，可选。不指定则使用源文件名改后缀。"
+      required: ["source_path"]
+
+  # ==================== 人类交互工具 ====================
+
+  human_in_loop:
+    level: 0
+    type: tool_call_agent
+    name: "human_in_loop"
+    description: "创建人类任务并等待完成。用于需要人工干预的场景（如上传文件、确认结果等）或者和用户进行交互。异步挂起，不阻塞服务器。"
+    parameters:
+      type: "object"
+      properties:
+        hil_id:
+          type: "string"
+          description: "人类任务的唯一ID，用于后续查询和完成任务。"
+        instruction:
+          type: "string"
+          description: "给人类的任务指令描述。"
+        # timeout:
+        #   type: "integer"
+        #   description: "超时时间（秒），不指定则无限等待。请都选择无限等待。"
+      required: ["hil_id", "instruction"]
+
+  # ==================== 代码执行工具 ====================
+
+  execute_code:
+    level: 0
+    type: tool_call_agent
+    name: "execute_code"
+    description: "在任务的隔离虚拟环境中执行 Python 或 Bash 代码。默认在 code_run/ 目录下执行。"
+    parameters:
+      type: "object"
+      properties:
+        language:
+          type: "string"
+          enum: ["python", "bash"]
+          description: "编程语言：python 或 bash。"
+        # code:
+        #   type: "string"
+        #   description: "要执行的代码内容，可选。如果提供则直接执行此代码。"
+        file_path:
+          type: "string"
+          description: "要执行的代码文件相对路径（相对根目录）,必选"
+        working_dir:
+          type: "string"
+          default: "code_run"
+          description: "代码执行时的工作目录，默认 'code_run'。"
+        use_venv:
+          type: "boolean"
+          default: true
+          description: "是否使用虚拟环境（仅 Python），默认 true。"
+        timeout:
+          type: "integer"
+          default: 3000
+          description: "执行超时时间（秒），默认 3000。"
+      required: ["language"]
+
+  pip_install:
+    level: 0
+    type: tool_call_agent
+    name: "pip_install"
+    description: "在任务的虚拟环境中安装一个或多个 Python 包。如果虚拟环境不存在会自动创建。"
+    parameters:
+      type: "object"
+      properties:
+        packages:
+          type: "array"
+          description: "要安装的 Python 包名列表，例如 ['numpy', 'pandas']。也可以是单个字符串。"
+          items:
+            type: "string"
+        timeout:
+          type: "integer"
+          default: 300
+          description: "安装超时时间（秒），默认 300。"
+      required: ["packages"]
+
+  execute_command:
+    level: 0
+    type: tool_call_agent
+    name: "execute_command"
+    description: "执行制定命令行命令（只允许 grep,pwd等只读指令）。可以指定工作目录。"
+    parameters:
+      type: "object"
+      properties:
+        command:
+          type: "string"
+          description: "要执行的 shell 命令，例如 'ls -la' 或 'pwd'。"
+        working_dir:
+          type: "string"
+          default: "."
+          description: "命令执行的工作目录相对路径，默认为任务根目录。"
+        timeout:
+          type: "integer"
+          default: 30
+          description: "命令执行超时时间（秒），默认 30。"
+      required: ["command"]
+
+  # ==================== 框架必需工具 ====================
+
+  final_output:
+    level: 0
+    type: tool_call_agent
+    name: "final_output"
+    description: "智能体输出最终结果的工具。当智能体完成任务或需要终止执行时调用此工具。"
+    parameters:
+      type: "object"
+      properties:
+        task_id:
+          type: "string"
+          description: "任务的唯一ID。"
+        status:
+          type: "string"
+          enum: ["success", "error"]
+          description: "任务执行状态：'success' 表示成功完成，'error' 表示执行失败。"
+        output:
+          type: "string"
+          description: "成功或失败的说明。如果输出包含文件，必须提供文件的相对路径和描述（不要重复文件中已有的内容），并包含 judge agent 的反馈。"
+        error_information:
+          type: "string"
+          description: "错误信息，仅在 status 为 'error' 时必需。"
+      required: ["task_id", "status", "output"]
