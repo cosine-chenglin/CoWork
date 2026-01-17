@@ -16,27 +16,6 @@
 
 ---
 
-## 🌟 Introduction
-
-**infiAgent Also called MLA (Multi-Level Agent)** is an agent framework designed for **unlimited runtime** without tool calling chaos or system crashes caused by cumulative task resources and conversation history. With MLA, you can build powerful general-purpose and semi-specialized agents simply by writing configuration files.
-
-### Key Features
-
-- ✅ **Unlimited Runtime**: No degradation from context accumulation
-- ✅ **Multi-Level Agent Hierarchy**: Serial execution with tree-structured agent orchestration
-- ✅ **Zero Context Compression**: File-based state management eliminates the need for context compression
-- ✅ **Task Memory**: Persistent memory across sessions using workspace as task ID
-- ✅ **Complete Research Workflows**: From literature search to experiments, plotting, and LaTeX papers
-
-### Default Configuration
-
-The default configuration in this repository is a **research-oriented semi-specialized agent** capable of:
-
-- 📝 **Academic Paper Writing**: Complete end-to-end workflow from research to LaTeX submission
-- ✅ **Human-Level Quality**: Papers can pass EI/IEEE conference peer reviews
-- 🧪 **Scientific Computing**: ECM protein simulation, logistics scheduling, assignment grading, etc.
-- 🔬 **Full Research Pipeline**: Literature collection, experiments, figures, and paper drafting
-
 ### Update & News🔥
 
 If you pulled the image or code before the latest update date, please refer to the issues that have been fixed and, based on your needs, pull the image and code again.
@@ -118,6 +97,27 @@ MLA handles the entire research workflow - from literature search and experiment
 - [Example Outputs](#-example-outputs)
 
 ---
+
+## 🌟 Introduction
+
+**infiAgent Also called MLA (Multi-Level Agent)** is an agent framework designed for **unlimited runtime** without tool calling chaos or system crashes caused by cumulative task resources and conversation history. With MLA, you can build powerful general-purpose and semi-specialized agents simply by writing configuration files.
+
+### Key Features
+
+- ✅ **Unlimited Runtime**: No degradation from context accumulation
+- ✅ **Multi-Level Agent Hierarchy**: Serial execution with tree-structured agent orchestration
+- ✅ **Zero Context Compression**: File-based state management eliminates the need for context compression
+- ✅ **Task Memory**: Persistent memory across sessions using workspace as task ID
+- ✅ **Complete Research Workflows**: From literature search to experiments, plotting, and LaTeX papers
+
+### Default Configuration
+
+The default configuration in this repository is a **research-oriented semi-specialized agent** capable of:
+
+- 📝 **Academic Paper Writing**: Complete end-to-end workflow from research to LaTeX submission
+- ✅ **Human-Level Quality**: Papers can pass EI/IEEE conference peer reviews
+- 🧪 **Scientific Computing**: ECM protein simulation, logistics scheduling, assignment grading, etc.
+- 🔬 **Full Research Pipeline**: Literature collection, experiments, figures, and paper drafting
 
 ## 🚀 Quick Start
 
